@@ -22,7 +22,11 @@ const upload = multer({
             cb(new Error(`Unsupport file type ${ext}`),false)
             return
         }
+
+        cb(null, true);
     }
 })
 
 export default upload
+
+

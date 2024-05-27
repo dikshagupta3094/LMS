@@ -14,6 +14,7 @@ config()
         api_key: process.env.API_KEY,
         api_secret: process.env.API_SECRET 
     });
+    console.log("Cloudainary config",process.env.API_KEY );
 app.listen(port,async()=>{
     await connectionToDb()
     console.log(`Server is listening on port ${port}`);

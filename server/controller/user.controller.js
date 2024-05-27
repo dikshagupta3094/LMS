@@ -1,7 +1,10 @@
 import AppError from '../utils/error.utils.js'
 import userModel from '../models/user.models.js'
 import {v2 as cloudinary} from 'cloudinary';
-import fs from 'fs'
+import fs from 'fs/promises';
+import sendEmail from '../utils/sendEmail.js';
+import crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 const cookieOptions = {
     maxAge:7*60*60*1000, //7days
     httpOnly:true,
@@ -20,7 +23,7 @@ if(!fullName || !email || !password){
 const userExist = await userModel.findOne({
     email})
 if(userExist){
-    return next(AppError('user already exist',400))
+    return next(new AppError('user already exist',400))
 }
 // creating new user
 const user = await userModel.create({
@@ -37,9 +40,8 @@ if(!user){
     return next(AppError("User registration failed, Please try again",400))
 }
 //TODO : upload file
-console.log(req.file);
+console.log("File details",JSON.stringify(req.file));
 if(req.file){
-
   try {
     const result = await cloudinary.uploader.upload(req.file.path,{
       folder: 'LMS P',
@@ -48,14 +50,17 @@ if(req.file){
       gravity:'faces',
       crop:'fill'
     })
-
     if(result){
+      console.log("result.public_id",result.public_id);
+      console.log("result.secure_url",result.secure_url)
       user.avatar.public_id = result.public_id,
       user.avatar.secure_url = result.secure_url
     }
-    //Remove file from server
+
+    // Remove file from server
     fs.rm(`uploads/${req.file.filename}`)
   } catch (error) {
+    console.log(error);
      return next(new AppError('File not upload succesfully',500))
   }
 }
@@ -139,21 +144,89 @@ const myProfile = async (req,res,next)=>{
  }
 }
 
+//Forgot password Controller 
 const forgotPassword = async(req,res)=>{
      const {email} = req.body
+     
+     if(!email){
+      return next(new AppError("Email is required",400))
+     }
+     //Find that given email id is registered or not
      const user = await userModel.findOne({email})
+     //If user not found
     if(!user){
-      return next(AppError('We do not find any user with given email!! Email not found',400))
+      return next(new AppError('We do not find any user with given email!! Email not found',400))
     }
+    // If user found than generate a reset Token using Crypto module
+    const resetToken = await user.generatePasswordResetToken() 
+    await user.save()
+    console.log("Reset Token",resetToken);
+    const resetURL = `${process.env.FRONTEND_URL}/resetPassword/${resetToken}`
 
-    const resetToken = user.generatePasswordResetToken() 
-    console.log(resetToken);
-    await user.save({ValiditBeforSave:false})
+    const message = `we have recived reset password request please click below link to reset your password \n ${resetURL} \n This link is valid only for 15 minutes`  
+   console.log("Message>>",message);
+    try {
+      await sendEmail({
+        email:user.email,
+        subject:'Password change request recived',
+        message
+      })
+      res.status(200).json({
+        success:true,
+        message:"Reset password link as been send"
+        
+      })
+    } catch (error) {
+      user.forgotPasswordToken = undefined,
+      user.forgotPasswordExpiry = undefined,
+      await user.save()
+      console.log(error);
+      return next(new AppError('There was an error for sending reset password link! PLEASE TRY AGAIN',500))
+    }
+}
+const resetPassword = async(req,res,next)=>{
+  try {
+   const {resetToken} = req.params
+   const {password} = req.body
+
+   if(!password){
+    return next(new AppError('Password is required',400))
+   }
+
+   const forgotPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+
+    const user = await userModel.findOne({
+      forgotPasswordToken,
+      forgotPasswordExpiry :{$gt:Date.now()}
+   })
+  
+   if(!user){
+      return next(new AppError('Token is invalid, or expired'),400)
+   }
+
+   user.password =await bcrypt.hash(password,10)
+   user.forgotPasswordToken = undefined
+   user.forgotPasswordExpiry = undefined
+   user.passwordChangeAt = Date.now()
+  await user.save()
+   console.log(user);
+   res.status(200).json({
+      success:true,
+      message:'Password reset successfully',
+   })
+   } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success:false,
+      message:"Some internall error occured"
+    })
+   }
 }
 export{
     register,
     login,
     logout,
     myProfile,
-    forgotPassword
+    forgotPassword,
+    resetPassword
 }
