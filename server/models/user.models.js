@@ -70,7 +70,8 @@ userSchema.methods = {
         return jwt.sign({
             id:this._id,
             email:this.email,
-            subscription:this.subscription
+            subscription:this.subscription,
+            role:this.role
         },
         process.env.JWT_SECRET_KEY,
         {expiresIn:'24h'}

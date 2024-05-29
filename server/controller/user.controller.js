@@ -13,7 +13,7 @@ const cookieOptions = {
 //  register controller
 
 const register = async(req,res,next)=>{
-const {fullName,email,password} = req.body;
+const {fullName,email,password,role} = req.body;
 
 //checking all fields 
 if(!fullName || !email || !password){
@@ -30,6 +30,7 @@ const user = await userModel.create({
     fullName,
     email,
     password,
+    role,
     avatar:{
         public_id:email,
         secure_url:'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg'
@@ -184,15 +185,20 @@ const forgotPassword = async(req,res)=>{
       return next(new AppError('There was an error for sending reset password link! PLEASE TRY AGAIN',500))
     }
 }
+
+//Reset Password controller
 const resetPassword = async(req,res,next)=>{
   try {
+    //extract token from params
    const {resetToken} = req.params
    const {password} = req.body
 
+   //check password field is required
    if(!password){
     return next(new AppError('Password is required',400))
    }
 
+     //Generate forgot password token
    const forgotPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')
 
     const user = await userModel.findOne({
@@ -222,11 +228,90 @@ const resetPassword = async(req,res,next)=>{
     })
    }
 }
+
+const changePassword = async(req,res,next)=>{
+ const {oldPassword,newPassword} = req.body
+const {id} = req.user
+ if(!oldPassword || !newPassword){
+  return next(new AppError("All fields are mandatory",400))
+ }
+const user = await userModel.findById(id).select('+password')
+if(!user){
+  return next(new AppError('User not found',400))
+}
+
+const isMatch = await user.comparePassword(oldPassword)
+
+if(!isMatch){
+  return next(new AppError('Your old Password does not match',400))
+}
+ user.password = newPassword
+ await user.save()
+ user.password = undefined
+ res.status(200).json({
+  success:true,
+  message:"Password updated successfully",
+  user
+ })
+}
+
+const updateProfile = async(req,res,next)=>{
+   const {fullName} = req.body
+   console.log("Body",fullName);
+   const {id} = req.user
+
+   const user = await userModel.findById(id)
+
+   if(!user){
+    return next(new AppError('User not exist',400))
+   }
+
+   if(fullName){
+    user.fullName = fullName
+    console.log("User",user.fullName);
+   }
+   if(req.file){
+    await cloudinary.uploader.destroy(user.avatar.public_id)
+
+    try {
+      const result = await cloudinary.uploader.upload(req.file.path,{
+        folder: 'LMS P',
+        width:250,
+        height:250,
+        gravity:'faces',
+        crop:'fill'
+      })
+      if(result){
+        console.log("result.public_id",result.public_id);
+        console.log("result.secure_url",result.secure_url)
+        user.avatar.public_id = result.public_id,
+        user.avatar.secure_url = result.secure_url
+      }
+  
+      // Remove file from server
+      fs.rm(`uploads/${req.file.filename}`)
+    
+    } catch (error) {
+      console.log(error);
+       return next(new AppError('File not upload succesfully',500))
+    }
+   
+   }
+   await user.save()
+   res.status(200).json({
+     success:true,
+     message:"user details updated successfully",
+    })
+ 
+}
+
 export{
     register,
     login,
     logout,
     myProfile,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    changePassword,
+    updateProfile
 }
