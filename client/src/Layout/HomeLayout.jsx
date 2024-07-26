@@ -6,9 +6,9 @@ import Footer from '../Component/Footer'
 function HomeLayout({children}) {
   function changewidth() {
     const drawerSide = document.getElementsByClassName("drawer-side");
-    drawerSide[0].style.width = 0;
+    drawerSide[0].style.width = 'auto';
   }
-  function hideDrawer({children}) {
+  function hideDrawer() {
     const element = document.getElementsByClassName("drawer-toggle");
     element[0].checked = false;
 
@@ -30,7 +30,7 @@ function HomeLayout({children}) {
         </div>
         <div className="drawer-side w-0">
           <label htmlFor="my-drawer" className="drawer-overlay"></label>
-          <ul className="menu w-48 p-4 sm:w-80 text-base-content min-h-full relative">
+          <ul className="menu w-48 p-4 sm:w-80 text-base-content min-h-full relative bg-base-100">
             {/* Sidebar content here */}
             <li className="w-fit absolute z-50 right-2">
               <button onClick={hideDrawer}>
@@ -44,10 +44,10 @@ function HomeLayout({children}) {
             <Link to="/course">Courses</Link>
             </li>
             <li>
-            <Link to="/About">About us</Link>
+            <Link to="/about">About us</Link>
             </li>
             <li>
-            <Link to="/Contact">Contact</Link>
+            <Link to="/contact">Contact</Link>
             </li>
           </ul>
         </div>
