@@ -29,12 +29,12 @@ function HomeLayout({ children }) {
     drawerSide[0].style.width = 0;
   }
 
-  async function handleLogout(e){
-     e.preventDefault();
+  async function handleLogout(e) {
+    e.preventDefault();
 
     // const res = await dispatch(logout())
     // if(res?.payload?.success)
-    navigate('/')
+    navigate("/");
   }
   return (
     <div className="min-h-[94vh]">
@@ -51,7 +51,7 @@ function HomeLayout({ children }) {
         </div>
         <div className="drawer-side w-0">
           <label htmlFor="my-drawer" className="drawer-overlay"></label>
-          <ul className="menu w-48 p-4 sm:w-80 text-base-content min-h-full relative bg-base-100">
+          <ul className="menu w-48 p-4 h-[100%] sm:w-80 text-base-content min-h-full relative bg-base-100">
             {/* Sidebar content here */}
             <li className="w-fit absolute z-50 right-2">
               <button onClick={hideDrawer}>
@@ -79,33 +79,32 @@ function HomeLayout({ children }) {
             <li>
               <Link to="/contact">Contact</Link>
             </li>
-            
+
             {!isLoggedIn && (
-              <li className="absolute top-44 w-[90%]">
-              <div className="w-full flex items-center justify-center">
-                <button className="btn-primary px-4 py-1 rounded-md w-full font-semibold bg-blue-600 text-white">
-                  <Link to="/login">Login</Link>
-                </button>
-                <button className="btn-secondary px-4 py-1 rounded-md w-full font-semibold bg-pink-600 text-white">
-                  <Link to="/signup">Sign Up</Link>
-                </button>
-              </div>
+              <li className="absolute bottom-4 w-[90%]">
+                <div className="w-full flex items-center justify-center">
+                  <button className="btn-primary px-4 py-1 rounded-md w-full font-semibold bg-blue-600 text-white">
+                    <Link to="/login">Login</Link>
+                  </button>
+                  <button className="btn-secondary px-4 py-1 rounded-md w-full font-semibold bg-pink-600 text-white">
+                    <Link to="/signup">Sign Up</Link>
+                  </button>
+                </div>
               </li>
             )}
-          
-           {isLoggedIn &&(
+
+            {isLoggedIn && (
               <li className="absolute top-44 w-[90%]">
-              <div className="w-full flex items-center justify-center">
-                <button className="btn-primary px-4 py-1 rounded-md w-full font-semibold bg-blue-600 text-white">
-                  <Link to="/profile">Profile</Link>
-                </button>
-                <button className="btn-secondary px-4 py-1 rounded-md w-full font-semibold bg-pink-600 text-white">
-                  <Link onClick={handleLogout}>Logout</Link>
-                </button>
-              </div>
+                <div className="w-full flex items-center justify-center">
+                  <button className="btn-primary px-4 py-1 rounded-md w-full font-semibold bg-blue-600 text-white">
+                    <Link to="/profile">Profile</Link>
+                  </button>
+                  <button className="btn-secondary px-4 py-1 rounded-md w-full font-semibold bg-pink-600 text-white">
+                    <Link onClick={handleLogout}>Logout</Link>
+                  </button>
+                </div>
               </li>
-           )}
-           
+            )}
           </ul>
         </div>
       </div>
