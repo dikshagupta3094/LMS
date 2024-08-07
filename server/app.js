@@ -5,6 +5,8 @@ import morgan from 'morgan'
 import userRoute from './routes/user.routes.js'
 import courseRoute from './routes/course.routes.js'
 import errorMiddleware from './middleware/error.middleware.js'
+import dotenv from 'dotenv';
+dotenv.config(); // Load environment variables
 const app = express()
 
 app.use(express.json())
@@ -13,6 +15,7 @@ app.use(cors({
     origin:[process.env.FRONTEND_URL],
     credentials:true
 }))
+
 
 app.use(cookieParser()) // cookie wagera parse ho sakhe
 app.use(urlencoded({extended:true}))
