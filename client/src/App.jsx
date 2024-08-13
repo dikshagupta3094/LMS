@@ -2,6 +2,9 @@ import "./App.css";
 import { Route, Routes } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
 import AboutusPage from "./Pages/AboutusPage";
+import NotFound from "./Pages/NotFound";
+import Signup from "./Pages/Signup";
+import Login from "./Pages/Login";
 
 function App() {
   return (
@@ -9,6 +12,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />}></Route>
         <Route path="/about" element={<AboutusPage />}></Route>
+        <Route path="/signup" element={<Signup/>}></Route>
+        <Route path="/login" element={<Login/>}></Route>
+        <Route path="*" element={<NotFound/>}></Route>
       </Routes>
     </>
   );
