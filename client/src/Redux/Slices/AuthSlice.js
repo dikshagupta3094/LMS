@@ -1,10 +1,14 @@
-import {createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {createAsyncThunk, createSlice, isRejectedWithValue } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 import axiosInstance from '../../Helpers/axiosInstance'
 const initialState = {
   isLoggedIn: JSON.parse(localStorage.getItem("isloggedIn")) || false,
   role: localStorage.getItem("role") || "",
-  data: JSON.parse(localStorage.getItem("data")) || {},
+  // data: JSON.parse(localStorage.getItem("data")) || {}
+  data: JSON.parse(localStorage.getItem("data")) !== null 
+  ? JSON.parse(localStorage.getItem("data")) 
+  : {}
+
 };
 
 export const createAccount = createAsyncThunk("auth/signup", async (data) => {
@@ -37,6 +41,7 @@ export const login = createAsyncThunk("auth/login", async (data) => {
     return (await res).data
   } catch (error) {
     toast.error(error?.response?.data?.message)
+    return isRejectedWithValue(error?.response?.data); 
   }
 });
 
@@ -57,6 +62,7 @@ export const logout = createAsyncThunk("auth/logout", async () => {
     toast.error(error?.response?.data?.message)
   }
 });
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -70,6 +76,15 @@ const authSlice = createSlice({
          state.isLoggedIn = true;
          state.data = action?.payload?.user;
          state.role = action?.payload?.user?.role;
+    }) //try
+    .addCase(login.rejected, (state) => {
+      state.isLoggedIn = false;
+      state.data = {};
+      state.role = "";
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("data");
+      localStorage.removeItem("role");
+      toast.error('Login failed. Please check your credentials.');
     })
     .addCase(logout.fulfilled,(state)=>{
       localStorage.clear();
