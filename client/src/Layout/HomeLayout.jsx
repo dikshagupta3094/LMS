@@ -11,11 +11,7 @@ function HomeLayout({ children }) {
 
   //check user is loggedIn or not
   const isLoggedIn = useSelector((state)=>state?.authReducer?.isLoggedIn);
-  console.log("HomeLayout", isLoggedIn);
   
-  const authState = useSelector((state) => state.authReducer);
-  console.log("HomeLayout1", authState);
-
   //for displaying the options action role
   const role = useSelector((state) => state?.authReducer?.role);
 
@@ -104,7 +100,6 @@ function HomeLayout({ children }) {
                     </button>
                   </Link>
                   <button onClick={handleLogout} className="btn-secondary px-4 py-1 rounded-md w-full font-semibold bg-pink-600 text-white">
-                    {/* <Link >Logout</Link> */}
                     Logout
                   </button>
                 </div>
